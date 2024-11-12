@@ -2,6 +2,7 @@ import {Device} from "react-native-ble-plx"
 import React, {useState} from "react"
 import requestPermissions from "@/hooks/bluetooth/permissions"
 import {connectTo, scanForPeripherals} from "@/hooks/bluetooth/peripherals"
+import bluetoothManager from "@/hooks/bluetooth/bluetoothManager";
 
 interface BluetoothContextType {
     foundDevices: Device[]
@@ -12,7 +13,8 @@ interface BluetoothContextType {
     requestBluetoothPermissions: () => Promise<boolean>,
     ballBot: Device | undefined,
     ballBotCamera: Device | undefined,
-    restart: () => Promise<void>
+    restart: () => Promise<void>,
+    stopScanning: () => Promise<void>
 }
 
 const BluetoothContext = React.createContext<BluetoothContextType | undefined>(undefined)
@@ -43,6 +45,10 @@ export const BluetoothProvider = ({children}: { children: React.ReactNode }) => 
         setFoundDevices([])
     }
 
+    async function stopScanning() {
+        await bluetoothManager.stopDeviceScan()
+    }
+
     const ballBot = foundDevices.find(device => device.name === "BallBot")
     const ballBotCamera = foundDevices.find(device => device.name === "BallBot Camera")
 
@@ -56,7 +62,8 @@ export const BluetoothProvider = ({children}: { children: React.ReactNode }) => 
             startScanning,
             ballBot,
             ballBotCamera,
-            restart
+            restart,
+            stopScanning
         }}>
             {children}
         </BluetoothContext.Provider>

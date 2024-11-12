@@ -7,8 +7,6 @@ async function requestAndroid31Permissions() {
         {
             title: "Bluetooth Scan Permission",
             message: "This app needs access to Bluetooth Scan",
-            buttonNeutral: "Ask Me Later",
-            buttonNegative: "Cancel",
             buttonPositive: "OK",
         }
     )
@@ -18,8 +16,6 @@ async function requestAndroid31Permissions() {
         {
             title: "Bluetooth Connect Permission",
             message: "This app needs access to Bluetooth Connect",
-            buttonNeutral: "Ask Me Later",
-            buttonNegative: "Cancel",
             buttonPositive: "OK",
         }
     )
@@ -29,8 +25,6 @@ async function requestAndroid31Permissions() {
         {
             title: "Fine Location Permission",
             message: "Bluetooth Low Energy requires Location Permission",
-            buttonNeutral: "Ask Me Later",
-            buttonNegative: "Cancel",
             buttonPositive: "OK",
         }
     )

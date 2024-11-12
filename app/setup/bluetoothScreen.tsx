@@ -25,6 +25,16 @@ export default function BluetoothScreen() {
 
     const bluetoothManager = useBluetooth()
 
+     const restartAlert = (message: string) => {
+        Alert.alert("Oh, No!", message, [{
+            text: "Restart",
+            onPress: async () => {
+                await bluetoothManager.restart()
+                router.dismissAll()
+            }
+        }])
+    }
+
     const scanForDevices = async () => {
         if (ballBotFound) router.push("/controlScreen")
         const granted = await bluetoothManager.requestBluetoothPermissions()
@@ -37,8 +47,7 @@ export default function BluetoothScreen() {
         } else {
             Alert.alert("Bluetooth permissions required", "Enable Bluetooth permissions in the Settings app to continue.", [{
                 text: "OK",
-                onPress: () => {
-                }
+                onPress: () => {}
             }])
         }
     }
@@ -71,6 +80,9 @@ export default function BluetoothScreen() {
             try {
                 await bluetoothManager.connectToDevice(ballBot)
                 setBallBotConnected(true)
+                bluetoothManager.ballBot?.onDisconnected(() => {
+                  restartAlert("BallBot got disconnected.")
+                })
                 if (!esp32CamFound) {
                     setMessage("Tap to search for BallBot Camera")
                     setIsScanning(false)
@@ -78,6 +90,10 @@ export default function BluetoothScreen() {
                     setConnectingElapsedTime(0)
                 } else {
                     router.push("/controlScreen")
+                    bluetoothManager.ballBotCamera?.onDisconnected(() => {
+                      restartAlert("BallBot Camera got disconnected.")
+                    })
+                    await bluetoothManager.stopScanning()
                 }
             } catch (error) {
                 console.error(error)

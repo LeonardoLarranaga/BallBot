@@ -27,9 +27,9 @@ export default function ControlScreen() {
         const setupBallbot = async () => {
             try {
                 const service = (await bluetoothManager.ballBot?.services())?.find(service => service.uuid === UUIDs.ballBotService)
-                if (!service) restartAlert("BallBot service not found")
+                if (!service) restartAlert("BallBot service not found.")
                 const receiveCharacteristic = (await service?.characteristics())?.find(characteristic => characteristic.uuid === UUIDs.ballBotReceiveCharacteristic)
-                if (!receiveCharacteristic) restartAlert("BallBot receive characteristic not found")
+                if (!receiveCharacteristic) restartAlert("BallBot receive characteristic not found.")
                 setBallBotReceiveCharacteristic(receiveCharacteristic)
             } catch (error) {
                 console.error(error)
