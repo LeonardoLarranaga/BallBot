@@ -14,7 +14,7 @@ export default function Index() {
             <Text style={styles.titleText}>BallBot</Text>
 
             <Pressable>
-                <Link href="/setup/ballBotBluetoothScreen">
+                <Link href="/setup/bluetoothScreen">
                     <View style={styles.button}>
                         <Text style={styles.buttonText}>Start</Text>
                     </View>

@@ -10,7 +10,7 @@ export default function RootLayout() {
                 contentStyle: styles.screen
             }}>
                 <Stack.Screen name="index"/>
-                <Stack.Screen name="setup/ballBotBluetoothScreen" options={backDisabled}/>
+                <Stack.Screen name="setup/bluetoothScreen" options={backDisabled}/>
                 <Stack.Screen name="controlScreen" options={backDisabled}/>
             </Stack>
         </BluetoothProvider>

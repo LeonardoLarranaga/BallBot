@@ -13,7 +13,7 @@ import * as ScreenOrientation from "expo-screen-orientation"
 import {Device} from "react-native-ble-plx"
 import {router} from "expo-router"
 
-export default function BallBotBluetoothScreen() {
+export default function BluetoothScreen() {
     const [isScanning, setIsScanning] = useState(false)
     const [searchingElapsedTime, setSearchingElapsedTime] = useState(0)
     const [connectingElapsedTime, setConnectingElapsedTime] = useState(0)
