@@ -58,7 +58,7 @@ void setupBluetooth(onReceiveValueCallback callback) {
 
   // Start advertising to allow clients to connect to the device
   BLEDevice::startAdvertising();
-  Serial.println("\nallBot Bluetooth service has started.");
+  Serial.println("\nBallBot Bluetooth service has started.");
 
   // Set the callback for receiving data
   receivePositionCharacteristic->setCallbacks(new MyCallbacks(callback));
