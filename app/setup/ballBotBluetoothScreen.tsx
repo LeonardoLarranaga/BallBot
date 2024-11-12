@@ -11,24 +11,29 @@ import {useEffect, useState} from "react"
 import {useBluetooth} from "@/components/BluetoothContext"
 import * as ScreenOrientation from "expo-screen-orientation"
 import {Device} from "react-native-ble-plx"
+import {router} from "expo-router"
 
-export default function BluetoothScreen() {
+export default function BallBotBluetoothScreen() {
     const [isScanning, setIsScanning] = useState(false)
     const [searchingElapsedTime, setSearchingElapsedTime] = useState(0)
     const [connectingElapsedTime, setConnectingElapsedTime] = useState(0)
     const [message, setMessage] = useState("Tap to search for BallBot")
+
     const [ballBotFound, setBallBotFound] = useState(false)
+    const [ballBotConnected, setBallBotConnected] = useState(false)
+    const [esp32CamFound, setEsp32CamFound] = useState(false)
+
     const bluetoothManager = useBluetooth()
 
     const scanForDevices = async () => {
-        console.log("Scanning for devices")
+        if (ballBotFound) router.push("/controlScreen")
         const granted = await bluetoothManager.requestBluetoothPermissions()
         setIsScanning(granted)
         if (granted) {
             bluetoothManager.clearFoundDevices()
             await bluetoothManager.startScanning()
             setSearchingElapsedTime(0)
-            setMessage("Searching for BallBot...")
+            setMessage(!ballBotConnected ? "Searching for BallBot..." : "Searching for BallBot Camera...")
         } else {
             Alert.alert("Bluetooth permissions required", "Enable Bluetooth permissions in the Settings app to continue.", [{
                 text: "OK",
@@ -55,15 +60,23 @@ export default function BluetoothScreen() {
     }, [isScanning])
 
     useEffect(() => {
-        if (ballBotFound) return
-        const ballBot = bluetoothManager.foundDevices.find((device) => device.localName === "BallBot")
+        if (!ballBotConnected ? ballBotFound : esp32CamFound) return
+        const ballBot = bluetoothManager.foundDevices.find((device) => device.localName === (!ballBotConnected ? "BallBot" : "BallBot Camera"))
         if (!ballBot) return
-        setBallBotFound(true)
-        setMessage("BallBot found!\nEstablishing connection...")
+        if (!ballBotConnected) setBallBotFound(true)
+        else setEsp32CamFound(true)
+        setMessage((!ballBotConnected ? "BallBot" : "BallBot Camera") + " found!\nEstablishing connection...")
 
         const connectToBallBot = async (ballBot: Device) => {
             try {
                 await bluetoothManager.connectToDevice(ballBot)
+                setBallBotConnected(true)
+                if (!esp32CamFound) {
+                    setMessage("Tap to search for BallBot Camera")
+                    setIsScanning(false)
+                } else {
+                    router.push("/controlScreen")
+                }
             } catch (error) {
                 console.error(error)
                 setConnectingElapsedTime(5)
@@ -76,7 +89,7 @@ export default function BluetoothScreen() {
     useEffect(() => {
         if (ballBotFound) {
             const timer = setTimeout(() => {
-               setConnectingElapsedTime((prev) => prev + 1)
+                setConnectingElapsedTime((prev) => prev + 1)
             }, 1000)
             return () => clearTimeout(timer)
         }
@@ -86,8 +99,9 @@ export default function BluetoothScreen() {
         setIsScanning(false)
         setSearchingElapsedTime(0)
         setConnectingElapsedTime(0)
-        setMessage("Tap to search for BallBot")
-        setBallBotFound(false)
+        setMessage(!ballBotConnected ? "Tap to search for BallBot" : "Tap to search for BallBot Camera")
+        if (!ballBotConnected) setBallBotFound(false)
+        else setEsp32CamFound(false)
         bluetoothManager.clearFoundDevices()
     }
 
@@ -95,7 +109,7 @@ export default function BluetoothScreen() {
         <SafeAreaView style={styles.screen}>
             <View style={styles.container}>
                 <Text style={styles.titleText}>
-                    Let's start by connecting you through Bluetooth
+                    {!ballBotConnected ? "Let's start by connecting you through Bluetooth" : "Nice!\nLet's connect you with the BallBot Camera. (Logic implemented, waiting for ESP32-Cam delivery)"}
                 </Text>
 
                 <Pressable
@@ -104,7 +118,7 @@ export default function BluetoothScreen() {
                 >
                     <View style={[
                         styles.searchButton, {
-                            flexDirection: ballBotFound ? "column" : "row",
+                            flexDirection: (!ballBotConnected ? ballBotFound : esp32CamFound) ? "column" : "row",
                         }
                     ]}>
                         <Text style={styles.searchButtonText}>{message}</Text>
@@ -115,27 +129,27 @@ export default function BluetoothScreen() {
                                 size="small"
                                 color="white"
                                 style={{
-                                    marginTop: ballBotFound ? 10 : 0,
-                                    marginLeft: isScanning && !ballBotFound ? 10 : 0
+                                    marginTop: (!ballBotConnected ? ballBotFound : esp32CamFound) ? 10 : 0,
+                                    marginLeft: isScanning && !(!ballBotConnected ? ballBotFound : esp32CamFound) ? 10 : 0
                                 }}
                             />
                         )}
                     </View>
                 </Pressable>
 
-                {searchingElapsedTime >= 10 && !ballBotFound && (
+                {searchingElapsedTime >= 10 && !(!ballBotConnected ? ballBotFound : esp32CamFound) && (
                     <View style={styles.timeoutTextContainer}>
                         <Text style={{fontSize: 14}}>
-                            {"It's seems like we are having trouble finding BallBot.\nPlease make sure it's turned on and in range."}
+                            {"It's seems like we are having trouble finding " + (!ballBotConnected ? "BallBot." : "the BallBot Camera") + ".\nPlease make sure it's turned on and in range."}
                         </Text>
                     </View>
                 )}
 
-                {connectingElapsedTime >= 5 && ballBotFound && (
+                {connectingElapsedTime >= 5 && (!ballBotConnected ? ballBotFound : esp32CamFound) && (
                     <View style={styles.timeoutTextContainer}>
                         <View>
                             <Text style={{fontSize: 14}}>
-                                {"There seems to be an issue connecting to BallBot.\n"}
+                                {"There seems to be an issue connecting to " +  (!ballBotConnected ? "BallBot" : "the BallBot Camera") + ".\n"}
                             </Text>
                             <Pressable onPress={() => restartAll()}>
                                 <Text style={{fontSize: 14, color: "#0284c7", textDecorationLine: "underline"}}>

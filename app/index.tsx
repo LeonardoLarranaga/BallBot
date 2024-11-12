@@ -14,7 +14,7 @@ export default function Index() {
             <Text style={styles.titleText}>BallBot</Text>
 
             <Pressable>
-                <Link href="/setup/bluetoothScreen">
+                <Link href="/setup/ballBotBluetoothScreen">
                     <View style={styles.button}>
                         <Text style={styles.buttonText}>Start</Text>
                     </View>
@@ -37,8 +37,9 @@ const styles = StyleSheet.create({
     devsContainer: {
         position: "absolute",
         bottom: 50,
-        borderRadius: 12,
+        borderRadius: 8,
         padding: 5,
+        backgroundColor: 'rgba(156,163,175,0.11)',
     },
     devsText: {
         fontSize: 16,
