@@ -74,6 +74,8 @@ export default function BluetoothScreen() {
                 if (!esp32CamFound) {
                     setMessage("Tap to search for BallBot Camera")
                     setIsScanning(false)
+                    setSearchingElapsedTime(0)
+                    setConnectingElapsedTime(0)
                 } else {
                     router.push("/controlScreen")
                 }
@@ -149,7 +151,7 @@ export default function BluetoothScreen() {
                     <View style={styles.timeoutTextContainer}>
                         <View>
                             <Text style={{fontSize: 14}}>
-                                {"There seems to be an issue connecting to " +  (!ballBotConnected ? "BallBot" : "the BallBot Camera") + ".\n"}
+                                {"There seems to be an issue connecting to " + (!ballBotConnected ? "BallBot" : "the BallBot Camera") + ".\n"}
                             </Text>
                             <Pressable onPress={() => restartAll()}>
                                 <Text style={{fontSize: 14, color: "#0284c7", textDecorationLine: "underline"}}>

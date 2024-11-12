@@ -7,9 +7,9 @@ void setup() {
   setupBluetooth(onReceiveValue);
 }
 
-void loop() {
-}
+void loop() {}
 
 void onReceiveValue(const char* newValue) {
+  Serial.print("Received: ");
   Serial.println(newValue);
 }
