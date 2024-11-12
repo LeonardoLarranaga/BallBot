@@ -1,4 +1,5 @@
 import bluetoothManager from "@/hooks/bluetooth/bluetoothManager"
+import {Device} from "react-native-ble-plx";
 
 export const scanForPeripherals = async (
     setFoundDevices: any
@@ -18,4 +19,22 @@ export const scanForPeripherals = async (
             })
         }
     })
+}
+
+export const connectTo = async (
+    device: Device, setConnectedDevices: any
+) => {
+    try {
+        const connectedDevice = await bluetoothManager.connectToDevice(device.id)
+        setConnectedDevices((prev: any) => {
+            if (!prev.find((d: any) => d.id === connectedDevice.id)) {
+                return [...prev, connectedDevice]
+            }
+            return prev
+        })
+        await connectedDevice.discoverAllServicesAndCharacteristics()
+        await bluetoothManager.stopDeviceScan()
+    } catch (error) {
+        throw error
+    }
 }

@@ -14,7 +14,8 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.leonardokadir.BallBotApp"
+      "bundleIdentifier": "com.leonardokadir.BallBotApp",
+      "orientation": "default"
     },
     "android": {
       "adaptiveIcon": {
