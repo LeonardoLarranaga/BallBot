@@ -2,23 +2,20 @@ import {SafeAreaView} from "react-native-safe-area-context"
 import {
     ActivityIndicator,
     Alert,
-    Button,
-    FlatList, Pressable,
+    Pressable,
     StyleSheet,
     Text,
-    TouchableHighlight,
-    TouchableOpacity,
     View
 } from "react-native"
 import {useEffect, useState} from "react"
-import {useBluetooth} from "@/hooks/bluetooth/useBluetooth"
+import {useBluetooth} from "@/components/BluetoothContext"
 import * as ScreenOrientation from "expo-screen-orientation"
-import {Ionicons} from "@expo/vector-icons";
-import {Device} from "react-native-ble-plx";
+import {Device} from "react-native-ble-plx"
 
 export default function BluetoothScreen() {
     const [isScanning, setIsScanning] = useState(false)
-    const [elapsedTime, setElapsedTime] = useState(0)
+    const [searchingElapsedTime, setSearchingElapsedTime] = useState(0)
+    const [connectingElapsedTime, setConnectingElapsedTime] = useState(0)
     const [message, setMessage] = useState("Tap to search for BallBot")
     const [ballBotFound, setBallBotFound] = useState(false)
     const bluetoothManager = useBluetooth()
@@ -30,7 +27,7 @@ export default function BluetoothScreen() {
         if (granted) {
             bluetoothManager.clearFoundDevices()
             await bluetoothManager.startScanning()
-            setElapsedTime(0)
+            setSearchingElapsedTime(0)
             setMessage("Searching for BallBot...")
         } else {
             Alert.alert("Bluetooth permissions required", "Enable Bluetooth permissions in the Settings app to continue.", [{
@@ -51,9 +48,7 @@ export default function BluetoothScreen() {
     useEffect(() => {
         if (isScanning) {
             const timer = setInterval(() => {
-                setElapsedTime((prev) => {
-                    return prev + 1
-                })
+                setSearchingElapsedTime((prev) => prev + 1)
             }, 1000)
             return () => clearInterval(timer)
         }
@@ -71,11 +66,30 @@ export default function BluetoothScreen() {
                 await bluetoothManager.connectToDevice(ballBot)
             } catch (error) {
                 console.error(error)
+                setConnectingElapsedTime(5)
             }
         }
 
         connectToBallBot(ballBot).catch()
     }, [bluetoothManager.foundDevices])
+
+    useEffect(() => {
+        if (ballBotFound) {
+            const timer = setTimeout(() => {
+               setConnectingElapsedTime((prev) => prev + 1)
+            }, 1000)
+            return () => clearTimeout(timer)
+        }
+    }, [ballBotFound])
+
+    const restartAll = () => {
+        setIsScanning(false)
+        setSearchingElapsedTime(0)
+        setConnectingElapsedTime(0)
+        setMessage("Tap to search for BallBot")
+        setBallBotFound(false)
+        bluetoothManager.clearFoundDevices()
+    }
 
     return (
         <SafeAreaView style={styles.screen}>
@@ -109,11 +123,26 @@ export default function BluetoothScreen() {
                     </View>
                 </Pressable>
 
-                {elapsedTime >= 10 && !ballBotFound && (
+                {searchingElapsedTime >= 10 && !ballBotFound && (
                     <View style={styles.timeoutTextContainer}>
                         <Text style={{fontSize: 14}}>
                             {"It's seems like we are having trouble finding BallBot.\nPlease make sure it's turned on and in range."}
                         </Text>
+                    </View>
+                )}
+
+                {connectingElapsedTime >= 5 && ballBotFound && (
+                    <View style={styles.timeoutTextContainer}>
+                        <View>
+                            <Text style={{fontSize: 14}}>
+                                {"There seems to be an issue connecting to BallBot.\n"}
+                            </Text>
+                            <Pressable onPress={() => restartAll()}>
+                                <Text style={{fontSize: 14, color: "#0284c7", textDecorationLine: "underline"}}>
+                                    Tap to try again.
+                                </Text>
+                            </Pressable>
+                        </View>
                     </View>
                 )}
             </View>
@@ -139,23 +168,9 @@ const styles = StyleSheet.create({
         width: "100%",
         textAlign: "center",
     },
-    deviceListContainer: {
-        width: "100%",
-        backgroundColor: 'white',
-        borderRadius: 10,
-    },
-    deviceItem: {
-        padding: 15,
-        borderBottomWidth: 1,
-        borderBottomColor: "#f0f0f0",
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-    },
     timeoutTextContainer: {
         position: "absolute",
         bottom: 0,
-        marginTop: 10,
         padding: 5,
         width: "100%",
         justifyContent: "center",
