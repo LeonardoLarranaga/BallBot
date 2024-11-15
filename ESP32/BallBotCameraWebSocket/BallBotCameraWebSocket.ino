@@ -5,9 +5,8 @@
 
 #include "CameraConfiguration.h"
 #include "WebSocket.h"
-#include <WiFi.h>
+#include "WiFiAP.h"
 
-const char *ssid = "BallBot Camera";
 
 void setup() {
   Serial.begin(115200);
@@ -23,12 +22,8 @@ void setup() {
   sensor_t *sensor = esp_camera_sensor_get();
   sensor->set_vflip(sensor, 1);
 
-  WiFi.softAP(ssid);
-  delay(100);
-  IPAddress Ip(192, 168, 39, 12);
-  IPAddress NMask(255, 255, 255, 0);
-  WiFi.softAPConfig(Ip, Ip, NMask);
-  
+  setupWiFiAP();
+
   startWebSocketServer();
   Serial.print("WebSocket started at: ");
   Serial.println(WiFi.softAPIP());
