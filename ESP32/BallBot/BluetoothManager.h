@@ -41,7 +41,8 @@ void setupBluetooth(onReceiveValueCallback callback) {
   // BLECharacteristic::PROPERTY_WRITE_NR -> Allows writing without response
   BLECharacteristic *receivePositionCharacteristic = receiveService->createCharacteristic(
     RECEIVE_POSITION_UUID,
-    BLECharacteristic::PROPERTY_WRITE | BLECharacteristic::PROPERTY_WRITE_NR);
+    BLECharacteristic::PROPERTY_WRITE | BLECharacteristic::PROPERTY_WRITE_NR
+  );
 
   // Add a descriptor to enable notifications and indications
   receivePositionCharacteristic->addDescriptor(new BLE2902());
