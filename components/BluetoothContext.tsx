@@ -12,7 +12,6 @@ interface BluetoothContextType {
     clearFoundDevices: () => void
     requestBluetoothPermissions: () => Promise<boolean>,
     ballBot: Device | undefined,
-    ballBotCamera: Device | undefined,
     restart: () => Promise<void>,
     stopScanning: () => Promise<void>
 }
@@ -50,7 +49,6 @@ export const BluetoothProvider = ({children}: { children: React.ReactNode }) => 
     }
 
     const ballBot = foundDevices.find(device => device.name === "BallBot")
-    const ballBotCamera = foundDevices.find(device => device.name === "BallBot Camera")
 
     return (
         <BluetoothContext.Provider value={{
@@ -61,7 +59,6 @@ export const BluetoothProvider = ({children}: { children: React.ReactNode }) => 
             requestBluetoothPermissions,
             startScanning,
             ballBot,
-            ballBotCamera,
             restart,
             stopScanning
         }}>
