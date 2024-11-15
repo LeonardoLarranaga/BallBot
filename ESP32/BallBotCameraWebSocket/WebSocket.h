@@ -1,16 +1,23 @@
 #ifndef WEBSOCKET_H
 #define WEBSOCKET_H
 
-#include <WebSocketsServer.h> // WebSockets by Markus Sattler
+#include <WebSocketsServer.h>  // WebSockets by Markus Sattler
 
 WebSocketsServer webSocket = WebSocketsServer(13);
 
 void onWebSocketEvent(uint8_t num, WStype_t type, uint8_t *payload, size_t length) {
-  if (type == WStype_CONNECTED) {
-    Serial.println("WebSocket client connected.");
-    webSocket.sendTXT(num, "OK");
-  } else {
-    Serial.println("WebSocker client disconnected.");
+  switch (type) {
+    case WStype_CONNECTED:
+      Serial.println("WebSocket client connected.");
+      break;
+
+    case WStype_ERROR:
+      Serial.println("WebSocket Error.");
+      break;
+
+    case WStype_DISCONNECTED:
+      Serial.println("WebSocket Client Disconencted.");
+      break;
   }
 }
 

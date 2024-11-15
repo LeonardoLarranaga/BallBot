@@ -8,10 +8,11 @@ import {
     View
 } from "react-native"
 import {useEffect, useState} from "react"
-import {useBluetooth} from "@/components/BluetoothContext"
+import {useBluetooth} from "@/components/Contexts/BluetoothContext"
 import * as ScreenOrientation from "expo-screen-orientation"
 import {Device} from "react-native-ble-plx"
 import {router} from "expo-router"
+import {useWebSocket} from "@/components/Contexts/WebSocketContext"
 
 export default function BluetoothScreen() {
     const [isScanning, setIsScanning] = useState(false)
@@ -22,16 +23,7 @@ export default function BluetoothScreen() {
     const [ballBotFound, setBallBotFound] = useState(false)
 
     const bluetoothManager = useBluetooth()
-
-    const restartAlert = (message: string) => {
-        Alert.alert("Oh, No!", message, [{
-            text: "Restart",
-            onPress: async () => {
-                await bluetoothManager.restart()
-                router.dismissAll()
-            }
-        }])
-    }
+    const webSocket = useWebSocket()
 
     const scanForDevices = async () => {
         if (ballBotFound) router.push("/controlScreen")
@@ -76,10 +68,7 @@ export default function BluetoothScreen() {
         const connectToBallBot = async (ballBot: Device) => {
             try {
                 await bluetoothManager.connectToDevice(ballBot)
-                bluetoothManager.ballBot?.onDisconnected(() => {
-                    restartAlert("BallBot got disconnected.")
-                })
-                router.push("/controlScreen")
+                router.push(webSocket.isConnected ? "/controlScreen" : "/setup/cameraWebSocketScreen")
                 await bluetoothManager.stopScanning()
             } catch (error) {
                 console.error(error)

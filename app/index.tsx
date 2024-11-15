@@ -21,6 +21,14 @@ export default function Index() {
                 </Link>
             </Pressable>
 
+            <Pressable>
+                <Link href="/setup/cameraWebSocketScreen">
+                    <View style={styles.button}>
+                        <Text style={styles.buttonText}>Test Websocket</Text>
+                    </View>
+                </Link>
+            </Pressable>
+
             <View style={styles.devsContainer}>
                 <Text style={styles.devsText}>Leonardo Larrañaga && Kadir Josafat Pérez</Text>
             </View>
