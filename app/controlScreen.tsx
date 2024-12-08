@@ -7,12 +7,17 @@ import {UUIDs} from "@/constants/UUIDs"
 import {Characteristic} from "react-native-ble-plx"
 import {btoa} from "react-native-quick-base64"
 import {useWebSocket} from "@/components/Contexts/WebSocketContext"
+import {ColorConversionCodes, Mat, ObjectType, OpenCV} from "react-native-fast-opencv/src"
 
 export default function ControlScreen() {
 
     const bluetoothManager = useBluetooth()
     const [ballBotReceiveCharacteristic, setBallBotReceiveCharacteristic] = useState<Characteristic | undefined>(undefined)
+
     const {lastFrameBuffer, getFrameUri} = useWebSocket()
+    const [firstFrame, setFirstFrame] = useState<Mat | undefined>(undefined)
+    const [canSetFirstFrame, setCanSetFirstFrame] = useState(true)
+    const [referencePixel, setReferencePixel] = useState({x: 0, y: 0})
 
     const restartAlert = (message: string, action: () => void) => {
         Alert.alert("Oh, No!", message, [{
@@ -49,12 +54,41 @@ export default function ControlScreen() {
             }
         }
 
-        bluetoothManager.ballBot?.onDisconnected(() => {
-            restartAlert("BallBot got disconnected.", goBackToBluetoothScreen)
-        })
-
-        setupBallbot().catch()
+        // bluetoothManager.ballBot?.onDisconnected(() => {
+        //     restartAlert("BallBot got disconnected.", goBackToBluetoothScreen)
+        // })
+        //
+        // setupBallbot().catch()
     }, [])
+
+    useEffect(() => {
+        if (!lastFrameBuffer) return
+        const base64 = getFrameUri()
+        const image = OpenCV.base64ToMat(base64)
+        const gray = image
+
+        const size = {width: 480, height: 320}
+
+        OpenCV.invoke('cvtColor', image, gray, ColorConversionCodes.COLOR_BGR2GRAY)
+        OpenCV.clearBuffers()
+
+        const kSize = OpenCV.createObject(ObjectType.Size, 35, 35)
+        OpenCV.invoke('GaussianBlur', gray, gray, kSize, 0)
+        OpenCV.clearBuffers()
+
+        if (canSetFirstFrame && !firstFrame) {
+            setFirstFrame(gray)
+            setCanSetFirstFrame(false)
+            setReferencePixel({x: size.width / 2.0, y: size.height / 2.0})
+            return
+        }
+
+        const frameDelta = gray
+        OpenCV.invoke('absdiff', firstFrame, gray, frameDelta)
+
+
+
+    }, [lastFrameBuffer])
 
     return (
         <SafeAreaView style={styles.screen}>

@@ -1,8 +1,9 @@
-import {ActivityIndicator, Image, Linking, Pressable, StyleSheet, Text, View} from "react-native"
+import {ActivityIndicator, Image, Linking, Platform, Pressable, StyleSheet, Text, View} from "react-native"
 import {SafeAreaView} from "react-native-safe-area-context"
-import {useEffect, useState} from "react"
+import {useEffect, useRef, useState} from "react"
 import {useWebSocket} from "@/components/Contexts/WebSocketContext"
-import {router} from "expo-router";
+import {router} from "expo-router"
+
 
 export default function CameraWebSocketScreen() {
 
@@ -16,12 +17,19 @@ export default function CameraWebSocketScreen() {
     const webSocket = useWebSocket()
     const [consoleMessage, setConsoleMessage] = useState("")
     const [hasNavigated, setHasNavigated] = useState(false)
+    const hasConnectedRef = useRef(false)
+    const frameBufferRef = useRef("")
 
     const executeStep = async () => {
         switch (currentStep) {
             case 0:
-                await Linking.openURL("App-Prefs:WIFI")
-                await new Promise(resolve => setTimeout(resolve, 500))
+                if (Platform.OS === "ios") {
+                    await Linking.openURL("App-Prefs:WIFI")
+                } else if (Platform.OS === "android") {
+                    console.log("Android")
+                    await Linking.openSettings()
+                }
+                console.log("Opening WiFi settings")
                 setCurrentStep(1)
                 setMessage(messages[1])
                 setConsoleMessage("Connecting to wifi")
@@ -37,7 +45,7 @@ export default function CameraWebSocketScreen() {
                 setIsTryingToConnect(true)
 
                 let i = 0
-                while (!webSocket.lastFrameBuffer) {
+                while (!hasConnectedRef.current) {
                     i += 1
                     setMessage(`Trying to connect (${i})...`)
                     await new Promise(resolve => setTimeout(resolve, 1000))
@@ -49,10 +57,22 @@ export default function CameraWebSocketScreen() {
 
     useEffect(() => {
         if (!webSocket.lastFrameBuffer || hasNavigated) return
+
         setIsTryingToConnect(false)
-        router.push("/controlScreen")
+        hasConnectedRef.current = true
+        // router.push("/controlScreen")
         setHasNavigated(true)
     }, [webSocket.lastFrameBuffer, hasNavigated])
+
+    useEffect(() => {
+        if (webSocket.lastFrameBuffer) {
+            const newFrameBuffer = webSocket.getFrameUri()
+            if (newFrameBuffer !== frameBufferRef.current) {
+                frameBufferRef.current = newFrameBuffer
+            }
+            console.log(webSocket.lastFrameBuffer.byteLength)
+        }
+    }, [webSocket.lastFrameBuffer])
 
     return (
         <SafeAreaView style={styles.screen}>
@@ -112,7 +132,7 @@ export default function CameraWebSocketScreen() {
 
                         {webSocket.lastFrameBuffer && (
                             <Image
-                                source={{uri: webSocket.getFrameUri()}}
+                                source={{uri: frameBufferRef.current}}
                                 style={{width: 300, height: 200, marginTop: 20}}
                                 resizeMode="contain"
                             />
